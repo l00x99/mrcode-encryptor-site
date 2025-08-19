@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MR CODE — تشفير & فك التشفير</title>
+  <meta name="description" content="MR CODE — أداة تشفير وفك تشفير محلية داخل المتصفح، بخوارزميات متعددة، وواجهة عربية/إنجليزية.">
+  <link rel="icon" href="./assets/favicon.svg">
+  <style>
+    :root{
+      --bg:#0b1220;--fg:#e5e7eb;--muted:#94a3b8;--card:#0f172a;--line:#1f2937;--brand:#7c3aed;--brand2:#22c55e;--accent:#38bdf8;--warn:#f97316;--radius:18px;
+    }
+    body.light{
+      --bg:#f6f7fb;--fg:#0b1220;--muted:#475569;--card:#ffffff;--line:#e5e7eb;--brand:#7c3aed;--brand2:#16a34a;--accent:#0ea5e9;--warn:#ea580c;
+    }
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,"Noto Naskh Arabic","Almarai",Tahoma,sans-serif;
+      background:var(--bg);color:var(--fg);overflow-x:hidden}
+    a{color:inherit;text-decoration:none}
+    .container{max-width:1200px;margin:0 auto}
+    /* Animated cosmic background */
+    .bg-circle{position:fixed;pointer-events:none;border-radius:50%;filter:blur(20px);opacity:.45;mix-blend-mode:screen}
+    .bg1{width:420px;height:420px;background:radial-gradient(circle,#7c3aed66,#0000);top:-120px;left:-120px;animation:pulse 10s ease-in-out infinite}
+    .bg2{width:300px;height:300px;background:radial-gradient(circle,#38bdf866,#0000);bottom:-120px;right:-120px;animation:pulse 12s ease-in-out infinite 2s}
+    .bg3{width:220px;height:220px;background:radial-gradient(circle,#22c55e66,#0000);top:40%;left:50%;transform:translate(-50%,-50%);animation:pulse 14s ease-in-out infinite 4s}
+    @keyframes pulse{0%{transform:translate(var(--tx,0),var(--ty,0)) scale(.9)}50%{transform:translate(var(--tx,0),var(--ty,0)) scale(1.1)}100%{transform:translate(var(--tx,0),var(--ty,0)) scale(.9)}}
+    /* Header */
+    .header{max-width:1200px;margin:0 auto;padding:18px 16px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:900}
+    .logo{width:34px;height:34px;border-radius:10px;background:conic-gradient(from 0deg,var(--brand),var(--accent),var(--brand2));
+      box-shadow:0 0 40px rgba(124,58,237,.35)}
+    .nav{display:flex;gap:8px;align-items:center}
+    .btn{border:1px solid var(--line);background:transparent;color:var(--fg);padding:10px 12px;border-radius:14px;font-weight:700;cursor:pointer;position:relative;overflow:hidden}
+    .btn-primary{border:0;background:linear-gradient(90deg,var(--brand),var(--accent));color:#0b1020}
+    .btn::after{content:"";position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.35) 10%,transparent 60%);transform:scale(0);transition:transform .45s}
+    .btn:active::after{transform:scale(1);transition:0s}
+    .badge{font-size:12px;color:#0b1020;background:linear-gradient(90deg,var(--brand2),var(--accent));padding:6px 10px;border-radius:999px;font-weight:800}
+    /* Hero */
+    .hero{max-width:1200px;margin:10px auto 0;display:grid;grid-template-columns:1.2fr .8fr;gap:16px;padding:0 16px;position:relative;z-index:1}
+    @media(max-width:980px){.hero{grid-template-columns:1fr}}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border:1px solid var(--line);
+      border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden}
+    .card .head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line);
+      background:linear-gradient(180deg,transparent,rgba(255,255,255,.02))}
+    .title{font-size:20px;margin:0}
+    .muted{color:var(--muted);font-size:12px}
+    textarea,input,select{width:100%;box-sizing:border-box}
+    textarea{min-height:240px;background:var(--card);border:1px solid var(--line);border-radius:14px;color:var(--fg);padding:12px;font-size:15px;line-height:1.9}
+    .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .stack{display:grid;gap:12px}
+    .chips{display:flex;flex-wrap:wrap;gap:6px}
+    .chip{border:1px solid var(--line);padding:6px 10px;border-radius:999px;font-size:12px;color:var(--muted)}
+    .out{min-height:240px;white-space:pre-wrap;line-height:1.9}
+    .mono{font-family:ui-monospace,monospace}
+    .footer{max-width:1200px;margin:20px auto;padding:12px 16px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+    .hero-sub{max-width:1200px;margin:8px auto 10px;padding:0 16px;display:flex;justify-content:space-between;align-items:center;gap:8px;position:relative;z-index:1}
+    /* Modal */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);z-index:30}
+    .modal.open{display:flex}
+    .modal-card{max-width:680px;width:90%;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+    .modal-body{padding:14px}
+  </style>
+</head>
+<body class="dark" data-lang="ar">
+  <div class="bg-circle bg1"></div>
+  <div class="bg-circle bg2"></div>
+  <div class="bg-circle bg3"></div>
+
+  <header class="header">
+    <div class="brand">
+      <div class="logo"></div>
+      <div id="t_brand_top">MR CODE <span class="muted" id="t_brand_sublabel">منصة تشفير</span></div>
+    </div>
+    <nav class="nav">
+      <a href="#" id="aboutBtn" class="btn">عن المطوّر</a>
+      <span class="badge" id="badge_local">100% Local</span>
+      <button id="langBtn" class="btn" aria-label="تبديل اللغة">EN</button>
+      <button id="themeBtn" class="btn" aria-label="تبديل السِمة">☾</button>
+    </nav>
+  </header>
+
+  <div class="hero-sub container">
+    <h1 class="title" style="font-size:28px" id="t_hero_title">أداة تشفير وفك تشفير بنقرة واحدة</h1>
+    <div class="muted" id="t_hero_sub">لا سيرفر، لا تعقيد — آمنة وسهلة الاستخدام.</div>
+  </div>
+
+  <main class="hero">
+    <section class="card" id="app">
+      <div class="head">
+        <h2 class="title" id="t_input_title">النص الأصلي</h2>
+        <span class="chip" id="t_privacy">محلي 100% • لا إرسال للسيرفر</span>
+      </div>
+      <div class="stack" style="padding:12px">
+        <textarea id="plain" placeholder="اكتب أو ألصق النص هنا..."></textarea>
+        <div class="row" id="algos">
+          <div class="panel">
+            <label class="muted" id="t_algo">الخوارزمية</label>
+            <select id="algo">
+              <option value="aes-gcm">AES‑GCM (كلمة مرور)</option>
+              <option value="aes-cbc">AES‑CBC (كلمة مرور)</option>
+            </select>
+          </div>
+          <div class="panel" id="pwPanel">
+            <label class="muted" id="t_password">كلمة المرور</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="password" type="password" placeholder="أدخل كلمة مرور" />
+              <button id="togglePw" class="btn" title="إظهار/إخفاء" aria-label="إظهار/إخفاء">👁️</button>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button id="encBtn" class="btn btn-primary">تشفير</button>
+          <button id="decBtn" class="btn">فك التشفير</button>
+          <button id="copyBtn" class="btn" title="نسخ" aria-label="نسخ">نسخ</button>
+          <button id="downloadBtn" class="btn" title="تنزيل" aria-label="تنزيل">تنزيل</button>
+          <button id="clearBtn" class="btn" title="مسح" aria-label="مسح">مسح</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="card">
+      <div class="head">
+        <h2 class="title" id="t_output_title">الناتج</h2>
+        <span class="chip mono" id="t_stack_chip">AES • PBKDF2 • محلي</span>
+      </div>
+      <div class="stack" style="padding:12px">
+        <div class="panel">
+          <label class="muted" id="t_cipher">النص المشفر / الإدخال</label>
+          <textarea id="ciphertext" placeholder="سيظهر هنا النص المشفر، أو ألصق نصًا مشفرًا لفكّه"></textarea>
+        </div>
+        <div class="panel">
+          <label class="muted" id="t_result">النتيجة</label>
+          <div id="result" class="out mono"></div>
+        </div>
+        <div class="chips" id="stats"></div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="footer">
+    <div>© <span id="t_brand">MR CODE</span> — <span id="t_footer">أداة تشفير احترافية</span></div>
+    <div class="mono">v1.0</div>
+  </footer>
+
+  <div class="modal" id="aboutModal" aria-hidden="true" role="dialog">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 class="title" id="t_about_title">عن المطوّر</h3>
+        <button id="aboutClose" class="btn" aria-label="إغلاق">×</button>
+      </div>
+      <div class="modal-body">
+        <p id="t_about_p1">المطوّر: <b>محمد إيهاب</b> 🇪🇬</p>
+        <p id="t_about_p2">مصري، أنشأت هذا الموقع لزيادة الخصوصية.</p>
+        <p id="t_about_p3">خبرات: HTML, PHP, Python, Lua, Java</p>
+        <p id="t_about_p4">خبرة في الأمن السيبراني وتطوير وتدريب وبرمجة الذكاء الاصطناعي.</p>
+        <p><b id="t_contact_title">للتواصل حساباتنا الرسمية:</b></p>
+        <ul>
+          <li><a href="https://api.whatsapp.com/send/?phone=201007856994&text&type=phone_number&app_absent=0" target="_blank" id="t_contact_whatsapp">واتساب</a></li>
+          <li><a href="https://t.me/l00x99" target="_blank" id="t_contact_telegram">تليجرام</a></li>
+          <li><a href="https://github.com/l00x99" target="_blank" id="t_contact_github">جيت هوب</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ========================= I18N =========================
+const t = {
+  ar:{
+    brand_top:"MR CODE", brand_sublabel:"منصة تشفير",
+    hero_title:"أداة تشفير وفك تشفير بنقرة واحدة", hero_sub:"لا سيرفر، لا تعقيد — آمنة وسهلة الاستخدام.",
+    input_title:"النص الأصلي", privacy:"محلي 100% • لا إرسال للسيرفر", algo:"الخوارزمية",
+    password:"كلمة المرور", pw_ph:"أدخل كلمة مرور",
+    output_title:"الناتج", cipher:"النص المشفر / الإدخال", cipher_ph:"سيظهر هنا النص المشفر، أو ألصق نصًا مشفرًا لفكّه",
+    result:"النتيجة", brand:"MR CODE", footer:"أداة تشفير احترافية", stack_chip:"AES • PBKDF2 • محلي",
+    enc:"تشفير", dec:"فك التشفير", copy:"نسخ", download:"تنزيل", clear:"مسح", placeholder_in:"اكتب أو ألصق النص هنا...",
+    about_btn:"عن المطوّر", about_title:"عن المطوّر",
+    about_p1:"المطوّر: <b>محمد إيهاب</b> 🇪🇬",
+    about_p2:"مصري، أنشأت هذا الموقع لزيادة الخصوصية.",
+    about_p3:"خبرات: HTML, PHP, Python, Lua, Java",
+    about_p4:"خبرة في الأمن السيبراني وتطوير وتدريب وبرمجة الذكاء الاصطناعي.",
+    contact_title: "للتواصل حساباتنا الرسمية:",
+    contact_whatsapp: "واتساب",
+    contact_telegram: "تليجرام",
+    contact_github: "جيت هوب",
+    stats_chars:"أحرف"
+  },
+  en:{
+    brand_top:"MR CODE", brand_sublabel:"Encryption Suite",
+    hero_title:"One‑click Encrypt & Decrypt", hero_sub:"No server, no hassle — secure and easy.",
+    input_title:"Original text", privacy:"100% Local • No server", algo:"Algorithm",
+    password:"Password", pw_ph:"Enter password",
+    output_title:"Output", cipher:"Ciphertext / Input", cipher_ph:"Ciphertext will appear here, or paste one to decrypt",
+    result:"Result", brand:"MR CODE", footer:"Pro‑grade Encryption Tool", stack_chip:"AES • PBKDF2 • Local",
+    enc:"Encrypt", dec:"Decrypt", copy:"Copy", download:"Download", clear:"Clear", placeholder_in:"Type or paste here...",
+    about_btn:"About Developer", about_title:"About the Developer",
+    about_p1:"Developer: <b>Mohamed Ehab</b> 🇪🇬",
+    about_p2:"Egyptian; I built this site to enhance privacy.",
+    about_p3:"Skills: HTML, PHP, Python, Lua, Java",
+    about_p4:"Experience in Cybersecurity and in AI development, training & programming.",
+    contact_title: "Official Accounts for Contact:",
+    contact_whatsapp: "WhatsApp",
+    contact_telegram: "Telegram",
+    contact_github: "GitHub",
+    stats_chars:"chars"
+  }
+};
+let lang='ar';
+function setLang(l){
+  lang=l;document.body.setAttribute('data-lang',l);document.documentElement.lang=l;document.documentElement.dir=(l==='ar'?'rtl':'ltr');
+  const m=t[l];
+  // Header
+  document.getElementById('t_brand_top').childNodes[0].nodeValue=m.brand_top+" ";
+  document.getElementById('t_brand_sublabel').textContent=m.brand_sublabel;
+  // Buttons
+  document.getElementById('aboutBtn').textContent=m.about_btn;
+  document.getElementById('langBtn').textContent=(l==='ar'?'EN':'عربي');
+  // Hero
+  document.getElementById('t_hero_title').textContent=m.hero_title;
+  document.getElementById('t_hero_sub').textContent=m.hero_sub;
+  // App
+  document.getElementById('t_input_title').textContent=m.input_title;
+  document.getElementById('t_privacy').textContent=m.privacy;
+  document.getElementById('t_algo').textContent=m.algo;
+  document.getElementById('t_password').textContent=m.password;
+  document.getElementById('password').placeholder=m.pw_ph;
+  document.getElementById('t_output_title').textContent=m.output_title;
+  document.getElementById('t_cipher').textContent=m.cipher;
+  document.getElementById('ciphertext').placeholder=m.cipher_ph;
+  document.getElementById('t_result').textContent=m.result;
+  document.getElementById('t_brand').textContent=m.brand;
+  document.querySelector('#t_stack_chip').textContent=m.stack_chip;
+  document.getElementById('t_footer').textContent=m.footer;
+  document.getElementById('encBtn').textContent=m.enc;
+  document.getElementById('decBtn').textContent=m.dec;
+  document.getElementById('copyBtn').textContent=m.copy;
+  document.getElementById('downloadBtn').textContent=m.download;
+  document.getElementById('clearBtn').textContent=m.clear;
+  document.getElementById('plain').placeholder=m.placeholder_in;
+  // About modal
+  document.getElementById('t_about_title').textContent=m.about_title;
+  document.getElementById('t_about_p1').innerHTML=m.about_p1;
+  document.getElementById('t_about_p2').textContent=m.about_p2;
+  document.getElementById('t_about_p3').textContent=m.about_p3;
+  document.getElementById('t_about_p4').textContent=m.about_p4;
+  document.getElementById('t_contact_title').textContent=m.contact_title;
+  document.getElementById('t_contact_whatsapp').textContent=m.contact_whatsapp;
+  document.getElementById('t_contact_telegram').textContent=m.contact_telegram;
+  document.getElementById('t_contact_github').textContent=m.contact_github;
+  // algo options
+  const map={"aes-gcm":0,"aes-cbc":1};
+  const sel=document.getElementById('algo');
+  sel.options[map["aes-gcm"]].text = (l==='ar'?"AES‑GCM (كلمة مرور)":"AES‑GCM (password)");
+  sel.options[map["aes-cbc"]].text = (l==='ar'?"AES‑CBC (كلمة مرور)":"AES‑CBC (password)");
+}
+
+// ========================= THEME =========================
+let isLight=false;function toggleTheme(){isLight=!isLight;document.body.classList.toggle('light',isLight);document.getElementById('themeBtn').textContent=isLight?'☀︎':'☾';}
+
+// ========================= Crypto utils =========================
+function ab2b64(ab){const bytes=new Uint8Array(ab);let bin="";for(let i=0;i<bytes.byteLength;i++)bin+=String.fromCharCode(bytes[i]);return btoa(bin);} 
+function b642ab(b64){const bin=atob(b64);const len=bin.length;const bytes=new Uint8Array(len);for(let i=0;i<len;i++)bytes[i]=bin.charCodeAt(i);return bytes.buffer;}
+function utf8(s){return new TextEncoder().encode(s)}
+function deutf8(b){return new TextDecoder().decode(b)}
+function rnd(n){const a=new Uint8Array(n);crypto.getRandomValues(a);return a}
+
+async function deriveKey(pw,salt,iterations,algo){
+  const pwKey=await crypto.subtle.importKey('raw',utf8(pw),{name:'PBKDF2'},false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt,iterations},pwKey,{name:algo==='aes-gcm'?'AES-GCM':'AES-CBC',length:256},false,['encrypt','decrypt']);
+}
+
+// PKCS7 padding for AES‑CBC
+function pkcs7Pad(bytes){const bs=16;const pad=bs-(bytes.length%bs||bs);const out=new Uint8Array(bytes.length+pad);out.set(bytes,0);out.fill(pad,bytes.length);return out.buffer}
+function pkcs7Unpad(buf){const a=new Uint8Array(buf);const pad=a[a.length-1];if(pad<1||pad>16)throw new Error('Bad padding');return a.slice(0,a.length-pad).buffer}
+
+async function encryptUnified(plain,alg,pw,it=150000,saltLen=16){
+  const salt=rnd(saltLen);const iv=rnd(alg==='aes-gcm'?12:16);const key=await deriveKey(pw,salt,it,alg);
+  let data=utf8(plain);let ct;
+  if(alg==='aes-gcm') ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,data);
+  else ct=await crypto.subtle.encrypt({name:'AES-CBC',iv},key,pkcs7Pad(data));
+  return `mrcode:v2:${alg}:${it}:${ab2b64(salt)}:${ab2b64(iv)}:${ab2b64(ct)}`;
+}
+
+async function decryptUnified(pack,pw){
+  const parts=pack.trim().split(':');
+  if(parts.length!==7 || parts[0]!=='mrcode' || parts[1]!=='v2') throw new Error('Bad format');
+  const alg=parts[2];const it=parseInt(parts[3]);const s=parts[4], v=parts[5], d=parts[6];
+  const salt=new Uint8Array(b642ab(s));const iv=new Uint8Array(b642ab(v));const ct=b642ab(d);
+  const key=await deriveKey(pw,salt,it,alg);
+  if(alg==='aes-gcm'){
+    const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);return deutf8(pt);
+  }else{
+    const pt=await crypto.subtle.decrypt({name:'AES-CBC',iv},key,ct);return deutf8(pkcs7Unpad(pt));
+  }
+}
+
+// ========================= UI Logic =========================
+const els={plain:document.getElementById('plain'), algo:document.getElementById('algo'), pw:document.getElementById('password'), cipher:document.getElementById('ciphertext'), result:document.getElementById('result'), stats:document.getElementById('stats'),
+enc:document.getElementById('encBtn'), dec:document.getElementById('decBtn'), copy:document.getElementById('copyBtn'), dl:document.getElementById('downloadBtn'), clear:document.getElementById('clearBtn'), pwPanel:document.getElementById('pwPanel'),
+langBtn:document.getElementById('langBtn'), themeBtn:document.getElementById('themeBtn'), togglePw:document.getElementById('togglePw'), aboutBtn:document.getElementById('aboutBtn'), aboutModal:document.getElementById('aboutModal'), aboutClose:document.getElementById('aboutClose')};
+
+function needPassword(){return ['aes-gcm','aes-cbc'].includes(els.algo.value)}
+function refreshPwPanel(){els.pwPanel.style.display = needPassword()? 'block':'none'}
+function updateStats(){const txt=els.cipher.value||'';const unit=t[lang].stats_chars;els.stats.innerHTML=`<span class="chip">${txt.length} ${unit}</span>`}
+
+els.algo.addEventListener('change',refreshPwPanel);
+els.togglePw.onclick=()=>{els.pw.type=(els.pw.type==='password'?'text':'password')};
+els.langBtn.onclick=()=>{setLang(lang==='ar'?'en':'ar')};
+els.themeBtn.onclick=toggleTheme;
+els.cipher.addEventListener('input',updateStats);
+
+// About modal open/close
+els.aboutBtn.onclick=(e)=>{e.preventDefault();els.aboutModal.classList.add('open')}
+els.aboutClose.onclick=()=>els.aboutModal.classList.remove('open')
+els.aboutModal.addEventListener('click',(e)=>{if(e.target===els.aboutModal)els.aboutModal.classList.remove('open')})
+
+els.enc.onclick=async()=>{
+  const alg=els.algo.value;const text=els.plain.value; if(!text){els.result.textContent= lang==='ar'? 'اكتب نصًا للتشفير.' : 'Type some text to encrypt.'; return}
+  if(needPassword() && (!els.pw.value || els.pw.value.length<6)){els.result.textContent = lang==='ar'? 'أدخل كلمة مرور أقوى (6 أحرف على الأقل).' : 'Enter a stronger password (min 6).'; return}
+  try{const pack=await encryptUnified(text,alg,els.pw.value);els.cipher.value=pack;els.result.textContent= lang==='ar'? '✅ تم التشفير.' : '✅ Encrypted.';updateStats();}
+  catch(e){els.result.textContent= (lang==='ar'? 'خطأ أثناء التشفير: ' : 'Encryption error: ')+ e.message}
+}
+els.dec.onclick=async()=>{
+  const pack=els.cipher.value; if(!pack){els.result.textContent= lang==='ar'? 'ألصق نصًا مشفرًا أولًا.' : 'Paste a packed ciphertext first.'; return}
+  try{const text=await decryptUnified(pack,els.pw.value);els.plain.value=text;els.result.textContent= lang==='ar'? '🔓 تم فك التشفير.' : '🔓 Decrypted.';}
+  catch(e){els.result.textContent=(lang==='ar'? 'فشل فك التشفير: ' : 'Decryption failed: ')+e.message}
+}
+els.copy.onclick=()=>{const s=els.cipher.value||els.plain.value; if(!s){els.result.textContent= lang==='ar'? 'لا يوجد ما يتم نسخه.' : 'Nothing to copy.';return} navigator.clipboard.writeText(s);els.result.textContent=lang==='ar'? '📋 تم النسخ.' : '📋 Copied.'}
+els.dl.onclick=()=>{const data=els.cipher.value||els.plain.value; if(!data){els.result.textContent= lang==='ar'? 'لا يوجد ما يتم تنزيله.' : 'Nothing to download.';return} const blob=new Blob([data],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mrcode.txt';a.click();}
+els.clear.onclick=()=>{els.plain.value='';els.cipher.value='';els.result.textContent='';updateStats()}
+
+// init
+setLang('ar');refreshPwPanel();
+</script>
+</body>
+</html>
